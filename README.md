@@ -1,91 +1,158 @@
-<img src="docs/images/unity-wide.png" align="middle" width="3000"/>
+# Unity ML-Agents Gym Wrapper
 
-# Unity ML-Agents Toolkit (Beta)
+A common way in which machine learning researchers interact with simulation
+environments is via a wrapper provided by OpenAI called `gym`. For more
+information on the gym interface, see [here](https://github.com/openai/gym).
 
-**The Unity Machine Learning Agents Toolkit** (ML-Agents) is an open-source Unity plugin 
-that enables games and simulations to serve as environments for training
-intelligent agents. Agents can be trained using reinforcement learning,
-imitation learning, neuroevolution, or other machine learning methods through
-a simple-to-use Python API. We also provide implementations (based on
-TensorFlow) of state-of-the-art algorithms to enable game developers
-and hobbyists to easily train intelligent agents for 2D, 3D and VR/AR games.
-These trained agents can be used for multiple purposes, including
-controlling NPC behavior (in a variety of settings such as multi-agent and
-adversarial), automated testing of game builds and evaluating different game
-design decisions pre-release. The ML-Agents toolkit is mutually beneficial for both game
-developers and AI researchers as it provides a central platform where advances
-in AI can be evaluated on Unity’s rich environments and then made accessible
-to the wider research and game developer communities. 
+We provide a a gym wrapper, and instructions for using it with existing machine
+learning algorithms which utilize gyms. Both wrappers provide interfaces on top
+of our `UnityEnvironment` class, which is the default way of interfacing with a
+Unity environment via Python.
 
-## Features
-* Unity environment control from Python
-* 10+ sample Unity environments
-* Support for multiple environment configurations and training scenarios
-* Train memory-enhanced Agents using deep reinforcement learning
-* Easily definable Curriculum Learning scenarios
-* Broadcasting of Agent behavior for supervised learning
-* Built-in support for Imitation Learning
-* Flexible Agent control with On Demand Decision Making
-* Visualizing network outputs within the environment
-* Simplified set-up with Docker
+## Installation
 
-## Documentation
+The gym wrapper can be installed using:
 
-* For more information, in addition to installation and usage
-instructions, see our [documentation home](docs/Readme.md).
-* If you have
-used a version of the ML-Agents toolkit prior to v0.4, we strongly recommend 
-our [guide on migrating from earlier versions](docs/Migrating.md).
+```sh
+pip install gym_unity
+```
 
-## References
+or by running the following from the `/gym-unity` directory of the repository:
 
-We have published a series of blog posts that are relevant for ML-Agents:
-- Overviewing reinforcement learning concepts
-([multi-armed bandit](https://blogs.unity3d.com/2017/06/26/unity-ai-themed-blog-entries/)
-and [Q-learning](https://blogs.unity3d.com/2017/08/22/unity-ai-reinforcement-learning-with-q-learning/))
-- [Using Machine Learning Agents in a real game: a beginner’s guide](https://blogs.unity3d.com/2017/12/11/using-machine-learning-agents-in-a-real-game-a-beginners-guide/)
-- [Post](https://blogs.unity3d.com/2018/02/28/introducing-the-winners-of-the-first-ml-agents-challenge/) announcing the winners of our
-[first ML-Agents Challenge](https://connect.unity.com/challenges/ml-agents-1)
-- [Post](https://blogs.unity3d.com/2018/01/23/designing-safer-cities-through-simulations/)
-overviewing how Unity can be leveraged as a simulator to design safer cities.
+```sh
+pip install .
+```
 
-In addition to our own documentation, here are some additional, relevant articles:
-- [Unity AI - Unity 3D Artificial Intelligence](https://www.youtube.com/watch?v=bqsfkGbBU6k)
-- [A Game Developer Learns Machine Learning](https://mikecann.co.uk/machine-learning/a-game-developer-learns-machine-learning-intent/)
-- [Explore Unity Technologies ML-Agents Exclusively on Intel Architecture](https://software.intel.com/en-us/articles/explore-unity-technologies-ml-agents-exclusively-on-intel-architecture)
+## Using the Gym Wrapper
 
-## Community and Feedback
+The gym interface is available from `gym_unity.envs`. To launch an environmnent
+from the root of the project repository use:
 
-The ML-Agents toolkit is an open-source project and we encourage and welcome contributions.
-If you wish to contribute, be sure to review our 
-[contribution guidelines](CONTRIBUTING.md) and 
-[code of conduct](CODE_OF_CONDUCT.md).
+```python
+from gym_unity.envs import UnityEnv
 
-You can connect with us and the broader community
-through Unity Connect and GitHub:
-* Join our
-[Unity Machine Learning Channel](https://connect.unity.com/messages/c/035fba4f88400000)
-to connect with others using the ML-Agents toolkit and Unity developers enthusiastic
-about machine learning. We use that channel to surface updates
-regarding the ML-Agents toolkit (and, more broadly, machine learning in games).
-* If you run into any problems using the ML-Agents toolkit, 
-[submit an issue](https://github.com/Unity-Technologies/ml-agents/issues) and
-make sure to include as much detail as possible.
+env = UnityEnv(environment_filename, worker_id, default_visual, multiagent)
+```
 
-For any other questions or feedback, connect directly with the ML-Agents
-team at ml-agents@unity3d.com.
+* `environment_filename` refers to the path to the Unity environment.
+* `worker_id` refers to the port to use for communication with the environment.
+  Defaults to `0`.
+* `use_visual` refers to whether to use visual observations (True) or vector
+  observations (False) as the default observation provided by the `reset` and
+  `step` functions. Defaults to `False`.
+* `multiagent` refers to whether you intent to launch an environment which
+  contains more than one agent. Defaults to `False`.
 
-## Translations
+The returned environment `env` will function as a gym.
 
-To make the Unity ML-Agents toolkit accessible to the global research and
-Unity developer communities, we're attempting to create and maintain
-translations of our documentation. We've started with translating a subset
-of the documentation to one language (Chinese), but we hope to continue
-translating more pages and to other languages. Consequently,
-we welcome any enhancements and improvements from the community.
+For more on using the gym interface, see our
+[Jupyter Notebook tutorial](../notebooks/getting-started-gym.ipynb).
 
-- [Chinese](docs/localized/zh-CN/)
+## Limitation
 
-## License
+* It is only possible to use an environment with a single Brain.
+* By default the first visual observation is provided as the `observation`, if
+  present. Otherwise vector observations are provided.
+* All `BrainInfo` output from the environment can still be accessed from the
+  `info` provided by `env.step(action)`.
+* Stacked vector observations are not supported.
+* Environment registration for use with `gym.make()` is currently not supported.
 
-[Apache License 2.0](LICENSE)
+## Running OpenAI Baselines Algorithms
+
+OpenAI provides a set of open-source maintained and tested Reinforcement
+Learning algorithms called the [Baselines](https://github.com/openai/baselines).
+
+Using the provided Gym wrapper, it is possible to train ML-Agents environments
+using these algorithms. This requires the creation of custom training scripts to
+launch each algorithm. In most cases these scripts can be created by making
+slightly modifications to the ones provided for Atari and Mujoco environments.
+
+### Example - DQN Baseline
+
+In order to train an agent to play the `GridWorld` environment using the
+Baselines DQN algorithm, create a file called `train_unity.py` within the
+`baselines/deepq/experiments` subfolder of the baselines repository. This file
+will be a modification of the `run_atari.py` file within the same folder. Then
+create and `/envs/` directory within the repository, and build the GridWorld
+environment to that directory. For more information on building Unity
+environments, see [here](../docs/Learning-Environment-Executable.md). Add the
+following code to the `train_unity.py` file:
+
+```python
+import gym
+
+from baselines import deepq
+from gym_unity.envs import UnityEnv
+
+def main():
+    env = UnityEnv("./envs/GridWorld", 0, use_visual=True)
+    model = deepq.models.cnn_to_mlp(
+        convs=[(32, 8, 4), (64, 4, 2), (64, 3, 1)],
+        hiddens=[256],
+        dueling=True,
+    )
+    act = deepq.learn(
+        env,
+        q_func=model,
+        lr=1e-3,
+        max_timesteps=100000,
+        buffer_size=50000,
+        exploration_fraction=0.1,
+        exploration_final_eps=0.02,
+        print_freq=10,
+    )
+    print("Saving model to unity_model.pkl")
+    act.save("unity_model.pkl")
+
+
+if __name__ == '__main__':
+    main()
+```
+
+To start the training process, run the following from the root of the baselines
+repository:
+
+```sh
+python -m baselines.deepq.experiments.train_unity
+```
+
+### Other Algorithms
+
+Other algorithms in the Baselines repository can be run using scripts similar to
+the example provided above. In most cases, the primary changes needed to use a
+Unity environment are to import `UnityEnv`, and to replace the environment
+creation code, typically `gym.make()`, with a call to `UnityEnv(env_path)`
+passing the environment binary path.
+
+A typical rule of thumb is that for vision-based environments, modification
+should be done to Atari training scripts, and for vector observation
+environments, modification should be done to Mujoco scripts.
+
+Some algorithms will make use of `make_atari_env()` or `make_mujoco_env()`
+functions. These are defined in `baselines/common/cmd_util.py`. In order to use
+Unity environments for these algorithms, add the following import statement and
+function to `cmd_utils.py`:
+
+```python
+from gym_unity.envs import UnityEnv
+
+def make_unity_env(env_directory, num_env, visual, start_index=0):
+    """
+    Create a wrapped, monitored Unity environment.
+    """
+    def make_env(rank): # pylint: disable=C0111
+        def _thunk():
+            env = UnityEnv(env_directory, rank, use_visual=True)
+            env = Monitor(env, logger.get_dir() and os.path.join(logger.get_dir(), str(rank)))
+            return env
+        return _thunk
+    if visual:
+        return SubprocVecEnv([make_env(i + start_index) for i in range(num_env)])
+    else:
+        rank = MPI.COMM_WORLD.Get_rank()
+        env = UnityEnv(env_directory, rank, use_visual=False)
+        env = Monitor(env, logger.get_dir() and os.path.join(logger.get_dir(), str(rank)))
+        return env
+
+```
