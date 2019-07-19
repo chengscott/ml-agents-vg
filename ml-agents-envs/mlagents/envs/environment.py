@@ -160,7 +160,9 @@ class UnityEnvironment(BaseUnityEnvironment):
         true_filename = os.path.basename(os.path.normpath(file_name))
         logger.debug('The true file name is {}'.format(true_filename))
         launch_string = None
+        self.is_linux = False
         if platform == "linux" or platform == "linux2":
+            self.is_linux = True
             candidates = glob.glob(os.path.join(cwd, file_name) + '.x86_64')
             if len(candidates) == 0:
                 candidates = glob.glob(os.path.join(cwd, file_name) + '.x86')
@@ -199,6 +201,12 @@ class UnityEnvironment(BaseUnityEnvironment):
             logger.debug("This is the launch string {}".format(launch_string))
             # Launch Unity environment
             if not docker_training:
+                if self.is_linux:
+                    if no_graphics:
+                        self.proc1 = subprocess.Popen("xvfb-run -a --server-args='-screen 0 640x480x24' {} -nographics -batchmode --port {}".format(launch_string, self.port), shell=True)
+                    else:
+                        self.proc1 = subprocess.Popen("xvfb-run -a --server-args='-screen 0 640x480x24' {} --port {}".format(launch_string, self.port), shell=True)
+                else:
                 if no_graphics:
                     self.proc1 = subprocess.Popen(
                         [launch_string, '-nographics', '-batchmode',
