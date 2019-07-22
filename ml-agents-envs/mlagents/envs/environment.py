@@ -207,13 +207,13 @@ class UnityEnvironment(BaseUnityEnvironment):
                     else:
                         self.proc1 = subprocess.Popen("xvfb-run -a --server-args='-screen 0 640x480x24' {} --port {}".format(launch_string, self.port), shell=True)
                 else:
-                if no_graphics:
-                    self.proc1 = subprocess.Popen(
-                        [launch_string, '-nographics', '-batchmode',
-                         '--port', str(self.port)])
-                else:
-                    self.proc1 = subprocess.Popen(
-                        [launch_string, '--port', str(self.port)])
+                    if no_graphics:
+                        self.proc1 = subprocess.Popen(
+                            [launch_string, '-nographics', '-batchmode',
+                            '--port', str(self.port)])
+                    else:
+                        self.proc1 = subprocess.Popen(
+                            [launch_string, '--port', str(self.port)])
             else:
                 """
                 Comments for future maintenance:
